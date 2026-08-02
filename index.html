@@ -16,7 +16,7 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Masalani yozing yoki rasmga olib yuklang. Men ham yozib, ham ovoz chiqarib tushuntiraman.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani yozing yoki rasmga olib yuklang. Birgalikda yechamiz.
             </div>
         </div>
 
@@ -44,17 +44,6 @@
     </footer>
 
     <script>
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Oldingi ovozni to'xtatish
-                const cleanText = text.replace(/<[^>]*>?/gm, ''); // HTML teglarini olib tashlash
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'uz-UZ'; // O'zbek tili
-                utterance.rate = 1.0; // Ovoz tezligi
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
         function solveMath() {
             const inputField = document.getElementById("inputField");
             const chatBox = document.getElementById("chatBox");
@@ -107,9 +96,6 @@
 
                 chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap">${reply}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-
-                // Matnni ovoz chiqarib o'qish
-                speakText(reply);
             }, 800);
         }
 
