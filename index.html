@@ -6,23 +6,28 @@
     <title>Matematika AI Platformasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4">
 
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col h-[85vh] max-h-[600px]">
+    <!-- Asosiy konteyner -->
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[85vh] p-4">
         <h1 class="text-xl font-bold text-emerald-400 text-center mb-1">Matematika AI Platformasi</h1>
         <p class="text-xs text-slate-400 text-center mb-4">Milliy Sertifikat va SAT imtihonlariga tayyorgarlik</p>
 
         <!-- Chat qismi -->
-        <div id="chatBox" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-y-auto flex flex-col gap-3 mb-3">
-            <div class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
+        <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
+            <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
                 <b>Al Ustoz:</b> Assalomu alaykum! Matematikadan qanday savol yoki masalangiz bor? Yozing, birgalikda tahlil qilamiz.
             </div>
         </div>
 
-        <!-- Input va tugma -->
+        <!-- Pastdagi yozish sohasi -->
         <div class="flex gap-2">
-            <textarea id="promptInput" placeholder="Masalangizni yozing..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 resize-none h-12 focus:outline-none focus:border-emerald-500"></textarea>
-            <button onclick="solveMath()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 rounded-xl text-sm transition">Yuborish</button>
+            <input type="text" id="inputField" placeholder="Masalangizni yozing..." 
+                class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+            <button onclick="solveMath()" 
+                class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-900/30">
+                Yuborish
+            </button>
         </div>
     </div>
 
@@ -33,55 +38,61 @@
     <script>
         async function solveMath() {
             const apiKey = "AQ.Ab8RN6ImV6yNJodIvJicNIQAJWvEODnhTJRQzz3JgY-UHzJQ1A";
-            const inputField = document.getElementById("promptInput");
+            const inputField = document.getElementById("inputField");
             const chatBox = document.getElementById("chatBox");
             const promptText = inputField.value.trim();
 
             if (!promptText) return;
 
             // Foydalanuvchi xabarini chiqarish
-            chatBox.innerHTML += `<div class="bg-blue-950 text-blue-200 p-3 rounded-lg text-sm max-w-[85%] self-end">${escapeHtml(promptText)}</div>`;
+            chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto">${escapeHtml(promptText)}</div>`;
             inputField.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
             // Yuklanmoqda xabari
             const loadingId = "loading_" + Date.now();
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Al Ustoz:</b> O'ylayapman va yechimini yozmoqdaman...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> O'ylayapman va qadamba-qadam yechimini yozmoqdaman...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${AQ.Ab8RN6ImV6yNJodIvJicNIQAJWvEODnhTJRQzz3JgY-UHzJQ1A}`;
-
-                const data = {
-                    contents: [{
-                        parts: [{
-                            text: "Siz professional matematika o'qituvchisisiz. Milliy Sertifikat va SAT imtihonlariga tayyorlayapsiz. Berilgan matematik masalani yoki savolni qadamba-qadam, aniq va tushunarli qilib yechib bering: " + promptText
-                        }]
-                    }]
-                };
-
-                const response = await fetch(url, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: "Siz professional matematika o'qituvchisisiz. Milliy Sertifikat va SAT imtihonlariga tayyorlayapsiz. Berilgan matematik masalani yoki savolni o'zbek tilida, aniq, tushunarli va qadamba-qadam formula va izohlar bilan yechib bering:\n\n" + promptText
+                            }]
+                        }]
+                    })
                 });
 
-                const result = await response.json();
-                const aiReply = result.candidates[0].content.parts[0].text;
-
+                const data = await response.json();
                 document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Al Ustoz:</b><br>${escapeHtml(aiReply).replace(/\n/g, '<br>')}</div>`;
+
+                if (data.candidates && data.candidates[0].content) {
+                    let aiReply = data.candidates[0].content.parts[0].text;
+                    chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap"><b>Al Ustoz:</b><br>${escapeHtml(aiReply)}</div>`;
+                } else {
+                    throw new Error("Javob olinmadi");
+                }
             } catch (error) {
-                document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="bg-red-950 border-l-2 border-red-500 text-red-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Xatolik:</b> Javob olishda xatolik yuz berdi.</div>`;
+                if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="bg-red-950/50 border border-red-800 text-red-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Xatolik:</b> API kalit yoki tarmoqda xatolik yuz berdi.</div>`;
             }
-
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+
+        // Enter tugmasi bosilganda yuborish
+        document.getElementById("inputField").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                solveMath();
+            }
+        });
     </script>
 </body>
 </html>
