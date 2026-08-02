@@ -16,7 +16,7 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Masalani yozing yoki rasm yuklab, "Yuborish" tugmasini bosing. To'liq yechib beraman.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani rasmga olib yuklang yoki matn ko'rinishida yozib yuboring. To'liq yechib beraman.
             </div>
         </div>
 
@@ -47,19 +47,20 @@
         // API KALITINGIZNI SHU YERGA YOZING:
         const API_KEY = "O'zingizning_API_kalitingizni_shu_yerga_qo'yasiz";
 
-        let currentImageBase64 = null;
-        let currentMimeType = "image/jpeg";
+        let pendingImageBase64 = null;
+        let pendingMimeType = "image/jpeg";
 
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            currentMimeType = file.type;
+            pendingMimeType = file.type;
             const reader = new FileReader();
             reader.onload = function(e) {
-                currentImageBase64 = e.target.result;
+                pendingImageBase64 = e.target.result;
                 const chatBox = document.getElementById("chatBox");
-                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-2 rounded-lg text-sm max-w-[85%] ml-auto"><img src="${currentImageBase64}" class="rounded-lg max-h-40 object-cover w-full"><b>[Rasm yuklandi. Endi "Yuborish" tugmasini bosing]</b></div>`;
+                // Rasmni chatga chiqaramiz va foydalanuvchiga yuborishga tayyorligini bildiramiz
+                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-2 rounded-lg text-sm max-w-[85%] ml-auto space-y-1"><img src="${pendingImageBase64}" class="rounded-lg max-h-40 object-cover w-full"><div class="text-xs text-emerald-400 font-semibold">✓ Rasm yuklandi. Endi "Yuborish" tugmasini bosing</div></div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
             reader.readAsDataURL(file);
@@ -70,44 +71,35 @@
             const chatBox = document.getElementById("chatBox");
             const text = inputField.value.trim();
 
-            if (!text && !currentImageBase64) return;
+            if (!text && !pendingImageBase64) return;
 
-            // Foydalanuvchi xabarini chiqarish (agar matn bo'lmasa, faqat rasm chiqadi)
-            let userHtml = `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto space-y-2">`;
-            if (currentImageBase64 && !inputField.hasImageShown) {
-                // Rasm oldin yuklangan bo'lsa chatga qayta takrorlamaslik uchun tekshiruv
-            }
+            // Agar matn yozilgan bo'lsa, uni chatga chiqarish (rasm allaqachon handleImageUpload'da chiqqan)
             if (text) {
-                userHtml += `<div>${escapeHtml(text)}</div>`;
-            }
-            userHtml += `</div>`;
-            
-            if (text) {
-                chatBox.innerHTML += userHtml;
+                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto"><div>${escapeHtml(text)}</div></div>`;
             }
 
             inputField.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // API'ga yuborish
-            callGeminiAPI(text, currentImageBase64, currentMimeType);
+            // API'ga rasm va matnni birga yuborish
+            callGeminiAPI(text, pendingImageBase64, pendingMimeType);
             
-            // Yuborilgandan keyin rasmni tozalash
-            currentImageBase64 = null;
+            // Yuborilgandan keyin rasmni tozalaymiz
+            pendingImageBase64 = null;
         }
 
         async function callGeminiAPI(userText, imageB64, mimeType) {
             const chatBox = document.getElementById("chatBox");
             const loadingId = "loading_" + Date.now();
             
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masala tahlil qilinmoqda...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Rasmdagi masala tahlil qilinmoqda...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
                 let contents = [];
                 let parts = [];
 
-                let promptInstruction = "Siz tajribali matematika o'qituvchisisiz. Ushbu rasm yoki matndagi masalani diqqat bilan o'qib chiqib, imlo xatolariga e'tibor bermasdan, uni o'zbek tilida qadamba-qadam, formulalar va mantiqiy asoslar bilan to'liq yechib bering.";
+                let promptInstruction = "Siz tajribali matematika o'qituvchisisiz. Ushbu rasmdagi yoki matndagi matematik masalani diqqat bilan o'qib chiqib, imlo xatolariga e'tibor bermasdan, uni o'zbek tilida qadamba-qadam, formulalar va to'liq hisob-kitoblar bilan yechib bering.";
                 
                 if (userText) {
                     promptInstruction += " Qo'shimcha izoh: " + userText;
@@ -142,7 +134,7 @@
 
                     chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap"><b>Al Ustoz:</b><br>${formattedReply}</div>`;
                 } else {
-                    chatBox.innerHTML += `<div class="bg-red-950/40 border border-red-800/50 text-red-200 p-3 rounded-lg text-sm max-w-[85%]">Javob olishda xatolik yuz berdi. API kalitingizni tekshiring.</div>`;
+                    chatBox.innerHTML += `<div class="bg-red-950/40 border border-red-800/50 text-red-200 p-3 rounded-lg text-sm max-w-[85%]">Javob olishda xatolik yuz berdi. API kalitingizni to'g'ri kiritganingizni tekshiring.</div>`;
                 }
 
                 chatBox.scrollTop = chatBox.scrollHeight;
