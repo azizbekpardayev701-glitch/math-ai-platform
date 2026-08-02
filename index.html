@@ -16,7 +16,7 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Matnli masalani yozing yoki rasmga olib yuklang. To'liq va qadamba-qadam tushuntirib beraman.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani yozing yoki rasm yuklab, "Yuborish" tugmasini bosing. To'liq yechib beraman.
             </div>
         </div>
 
@@ -50,30 +50,6 @@
         let currentImageBase64 = null;
         let currentMimeType = "image/jpeg";
 
-        function sendMessage() {
-            const inputField = document.getElementById("inputField");
-            const chatBox = document.getElementById("chatBox");
-            const text = inputField.value.trim();
-
-            if (!text && !currentImageBase64) return;
-
-            let userHtml = `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto space-y-2">`;
-            if (currentImageBase64) {
-                userHtml += `<img src="${currentImageBase64}" class="rounded-lg max-h-40 object-cover w-full">`;
-            }
-            if (text) {
-                userHtml += `<div>${escapeHtml(text)}</div>`;
-            }
-            userHtml += `</div>`;
-            chatBox.innerHTML += userHtml;
-
-            inputField.value = "";
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            callGeminiAPI(text, currentImageBase64, currentMimeType);
-            currentImageBase64 = null;
-        }
-
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -83,10 +59,41 @@
             reader.onload = function(e) {
                 currentImageBase64 = e.target.result;
                 const chatBox = document.getElementById("chatBox");
-                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-2 rounded-lg text-sm max-w-[85%] ml-auto"><img src="${currentImageBase64}" class="rounded-lg max-h-40 object-cover"><b>[Rasm yuklandi. Savolingizni yozib yuboring]</b></div>`;
+                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-2 rounded-lg text-sm max-w-[85%] ml-auto"><img src="${currentImageBase64}" class="rounded-lg max-h-40 object-cover w-full"><b>[Rasm yuklandi. Endi "Yuborish" tugmasini bosing]</b></div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
             reader.readAsDataURL(file);
+        }
+
+        function sendMessage() {
+            const inputField = document.getElementById("inputField");
+            const chatBox = document.getElementById("chatBox");
+            const text = inputField.value.trim();
+
+            if (!text && !currentImageBase64) return;
+
+            // Foydalanuvchi xabarini chiqarish (agar matn bo'lmasa, faqat rasm chiqadi)
+            let userHtml = `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto space-y-2">`;
+            if (currentImageBase64 && !inputField.hasImageShown) {
+                // Rasm oldin yuklangan bo'lsa chatga qayta takrorlamaslik uchun tekshiruv
+            }
+            if (text) {
+                userHtml += `<div>${escapeHtml(text)}</div>`;
+            }
+            userHtml += `</div>`;
+            
+            if (text) {
+                chatBox.innerHTML += userHtml;
+            }
+
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // API'ga yuborish
+            callGeminiAPI(text, currentImageBase64, currentMimeType);
+            
+            // Yuborilgandan keyin rasmni tozalash
+            currentImageBase64 = null;
         }
 
         async function callGeminiAPI(userText, imageB64, mimeType) {
@@ -100,13 +107,13 @@
                 let contents = [];
                 let parts = [];
 
-                let systemInstruction = "Siz tajribali matematika o'qituvchisisiz. Foydalanuvchi yuborgan istalgan murakkab matnli masalani yoki rasmdagi shartni imlo xatolariga qaramasdan mukammal tushunib, o'zbek tilida qadamba-qadam, formulalar va mantiqiy asoslar bilan to'liq yechib bering.";
-
+                let promptInstruction = "Siz tajribali matematika o'qituvchisisiz. Ushbu rasm yoki matndagi masalani diqqat bilan o'qib chiqib, imlo xatolariga e'tibor bermasdan, uni o'zbek tilida qadamba-qadam, formulalar va mantiqiy asoslar bilan to'liq yechib bering.";
+                
                 if (userText) {
-                    parts.push({ text: systemInstruction + " Masala sharti: " + userText });
-                } else {
-                    parts.push({ text: systemInstruction + " Iltimos, ushbu rasmdagi masalani diqqat bilan o'qib chiqib, qadamba-qadam yechib bering." });
+                    promptInstruction += " Qo'shimcha izoh: " + userText;
                 }
+
+                parts.push({ text: promptInstruction });
 
                 if (imageB64) {
                     let base64Data = imageB64.split(",")[1];
