@@ -73,12 +73,14 @@
                 if (data.candidates && data.candidates[0].content) {
                     let aiReply = data.candidates[0].content.parts[0].text;
                     chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap"><b>Al Ustoz:</b><br>${escapeHtml(aiReply)}</div>`;
+                } else if (data.error) {
+                    throw new Error(data.error.message);
                 } else {
                     throw new Error("Javob olinmadi");
                 }
             } catch (error) {
                 if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="bg-red-950/50 border border-red-800 text-red-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Xatolik:</b> API kalit yoki tarmoqda xatolik yuz berdi.</div>`;
+                chatBox.innerHTML += `<div class="bg-red-950/50 border border-red-800 text-red-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Xatolik:</b> ${escapeHtml(error.message)}</div>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -87,7 +89,6 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        // Enter tugmasi bosilganda yuborish
         document.getElementById("inputField").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 solveMath();
