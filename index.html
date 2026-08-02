@@ -1,34 +1,87 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Milliy Sertifikat & SAT Matematika AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matematika AI Platformasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-  <div class="max-w-2xl w-full mx-auto bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700 my-auto">
-    <h1 class="text-3xl font-bold text-center text-emerald-400 mb-2">Matematika AI Platformasi</h1>
-    <p class="text-slate-400 text-center mb-6">Milliy Sertifikat va SAT imtihonlariga tayyorgarlik</p>
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col h-[85vh] max-h-[600px]">
+        <h1 class="text-xl font-bold text-emerald-400 text-center mb-1">Matematika AI Platformasi</h1>
+        <p class="text-xs text-slate-400 text-center mb-4">Milliy Sertifikat va SAT imtihonlariga tayyorgarlik</p>
 
-    <div class="bg-slate-900 rounded-lg p-4 min-h-[200px] mb-4 border border-slate-700 flex flex-col justify-between">
-      <div class="bg-emerald-900/40 border border-emerald-500/30 text-emerald-200 p-3 rounded-lg mb-3">
-        <strong>AI Ustoz:</strong> Assalomu alaykum! Matematikadan qanday savol yoki masalangiz bor? Yozing, birgalikda tahlil qilamiz.
-      </div>
+        <!-- Chat qismi -->
+        <div id="chatBox" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-y-auto flex flex-col gap-3 mb-3">
+            <div class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
+                <b>Al Ustoz:</b> Assalomu alaykum! Matematikadan qanday savol yoki masalangiz bor? Yozing, birgalikda tahlil qilamiz.
+            </div>
+        </div>
+
+        <!-- Input va tugma -->
+        <div class="flex gap-2">
+            <textarea id="promptInput" placeholder="Masalangizni yozing..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 resize-none h-12 focus:outline-none focus:border-emerald-500"></textarea>
+            <button onclick="solveMath()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 rounded-xl text-sm transition">Yuborish</button>
+        </div>
     </div>
 
-    <div class="flex gap-2">
-      <input type="text" placeholder="Masalangizni yozing..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500">
-      <button class="bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-3 rounded-lg transition-colors">
-        Yuborish
-      </button>
-    </div>
-  </div>
+    <footer class="mt-4 text-center text-xs text-slate-500">
+        &copy; 2026 Matematika AI Platformasi. Barcha huquqlar himoyalangan.
+    </footer>
 
-  <footer class="text-center text-slate-500 text-sm py-4">
-    © 2026 Matematika AI Platformasi. Barcha huquqlar himoyalangan.
-  </footer>
+    <script>
+        async function solveMath() {
+            const apiKey = "AQ.Ab8RN6ImV6yNJodIvJicNIQAJWvEODnhTJRQzz3JgY-UHzJQ1A";
+            const inputField = document.getElementById("promptInput");
+            const chatBox = document.getElementById("chatBox");
+            const promptText = inputField.value.trim();
 
+            if (!promptText) return;
+
+            // Foydalanuvchi xabarini chiqarish
+            chatBox.innerHTML += `<div class="bg-blue-950 text-blue-200 p-3 rounded-lg text-sm max-w-[85%] self-end">${escapeHtml(promptText)}</div>`;
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Yuklanmoqda xabari
+            const loadingId = "loading_" + Date.now();
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Al Ustoz:</b> O'ylayapman va yechimini yozmoqdaman...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+
+                const data = {
+                    contents: [{
+                        parts: [{
+                            text: "Siz professional matematika o'qituvchisisiz. Milliy Sertifikat va SAT imtihonlariga tayyorlayapsiz. Berilgan matematik masalani yoki savolni qadamba-qadam, aniq va tushunarli qilib yechib bering: " + promptText
+                        }]
+                    }]
+                };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                const aiReply = result.candidates[0].content.parts[0].text;
+
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="bg-emerald-950/60 border-l-2 border-emerald-500 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Al Ustoz:</b><br>${escapeHtml(aiReply).replace(/\n/g, '<br>')}</div>`;
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="bg-red-950 border-l-2 border-red-500 text-red-200 p-3 rounded-lg text-sm max-w-[85%]"><b>Xatolik:</b> Javob olishda xatolik yuz berdi.</div>`;
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
 </body>
 </html>
