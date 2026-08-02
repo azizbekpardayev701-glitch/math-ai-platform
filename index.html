@@ -50,37 +50,34 @@
 
             // Yuklanmoqda xabari
             const loadingId = "loading_" + Date.now();
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masalani hisoblamoqdaman...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Hisoblamoqdaman...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             setTimeout(() => {
                 document.getElementById(loadingId).remove();
                 
                 let resultText = "";
-                let lower = promptText.toLowerCase();
+                let numbers = promptText.match(/\d+/g);
 
-                // Agar matnda sonlar va ayirish/qo'shish bo'lsa avtomatik hisoblab berishga urinish
-                try {
-                    // Agar masalada oddiy arifmetika bo'lsa (masalan: 5 - 1 yoki shunga o'xshash)
-                    let numbers = promptText.match(/\d+/g);
-                    if (lower.includes("olma") || lower.includes("qoldi") || lower.includes("edi")) {
-                        if (numbers && numbers.length >= 2) {
-                            let a = parseInt(numbers[0]);
-                            let b = parseInt(numbers[1]);
-                            let ans = a - b;
-                            resultText = `<b>Al Ustoz:</b><br><b>Masala tahlili:</b><br>1. Dastlabki miqdor: ${a} ta.<br>2. Ayirildi yoki yeyildi: ${b} ta.<br>3. <b>Amal bajarish:</b> $${a} - ${b} = ${ans}$<br><b>Javob: ${ans} ta qoldi.</b>`;
-                        }
+                if (numbers && numbers.length >= 2) {
+                    let a = parseInt(numbers[0]);
+                    let b = parseInt(numbers[1]);
+                    
+                    if (promptText.toLowerCase().includes("qoʻsh") || promptText.toLowerCase().includes("qosh") || promptText.toLowerCase().includes("va")) {
+                        let sum = a + b;
+                        resultText = `<b>Al Ustoz:</b><br><b>Yechim:</b><br>1. Berilgan sonlar: ${a} va ${b}<br>2. Qo'shish amali bajariladi: ${a} + ${b}<br>3. <b>Natija:</b> ${sum}`;
+                    } else {
+                        // Odatiy ayirish (olma yedi, qoldi kabi)
+                        let diff = a - b;
+                        resultText = `<b>Al Ustoz:</b><br><b>Yechim:</b><br>1. Boshlang'ich miqdor: ${a}<br>2. Ayiriladigan miqdor: ${b}<br>3. Hisob-kitob: ${a} - ${b} = ${diff}<br><b>Javob: ${diff}</b>`;
                     }
-                } catch(e) {}
-
-                // Agar maxsus shart bajarilmasa, umumiy mukammal tahlil shabloni
-                if (!resultText) {
-                    resultText = `<b>Al Ustoz:</b><br>"<b>${escapeHtml(promptText)}</b>" masalasining to'liq yechimi:<br><br>1. <b>Shartini tahlil qilish:</b> Berilgan qiymatlar va noma'lumlarni aniqlab olamiz.<br>2. <b>Qoidalar va formulalar:</b> Mavzuga doir tegishli qonun-qoidalarni yozamiz.<br>3. <b>Hisob-kitob:</b> Bosqichma-bosqich amallarni bajaramiz.<br><b>Xulosa:</b> Masala muvaffaqiyatli bajarildi!`;
+                } else {
+                    resultText = `<b>Al Ustoz:</b><br>"<b>${escapeHtml(promptText)}</b>" bo'yicha tahlil:<br>Iltimos, masalani aniqroq raqamlar bilan kiriting (masalan: "10 ta olma bor edi 3 tasi yeyildi").`;
                 }
 
                 chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap">${resultText}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 800);
+            }, 600);
         }
 
         function escapeHtml(text) {
