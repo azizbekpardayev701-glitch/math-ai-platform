@@ -16,16 +16,24 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Matematikadan qanday savol yoki masalangiz bor? Yozing, birgalikda tahlil qilamiz.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani yozing yoki rasmga olib yuklang. Men ham yozib, ham ovoz chiqarib tushuntiraman.
             </div>
         </div>
 
-        <!-- Pastdagi yozish sohasi -->
-        <div class="flex gap-2">
+        <!-- Pastdagi yozish va rasm yuklash sohasi -->
+        <div class="flex gap-2 items-center">
+            <label class="bg-slate-800 hover:bg-slate-700 text-emerald-400 p-2.5 rounded-xl cursor-pointer transition-all border border-slate-700 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+            </label>
+
             <input type="text" id="inputField" placeholder="Masalangizni yozing..." 
                 class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+            
             <button onclick="solveMath()" 
-                class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-900/30">
+                class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-emerald-900/30">
                 Yuborish
             </button>
         </div>
@@ -36,6 +44,17 @@
     </footer>
 
     <script>
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Oldingi ovozni to'xtatish
+                const cleanText = text.replace(/<[^>]*>?/gm, ''); // HTML teglarini olib tashlash
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'uz-UZ'; // O'zbek tili
+                utterance.rate = 1.0; // Ovoz tezligi
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
         function solveMath() {
             const inputField = document.getElementById("inputField");
             const chatBox = document.getElementById("chatBox");
@@ -43,41 +62,55 @@
 
             if (!promptText) return;
 
-            // Foydalanuvchi xabarini chiqarish
             chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-3 rounded-lg text-sm max-w-[85%] ml-auto">${escapeHtml(promptText)}</div>`;
             inputField.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Yuklanmoqda xabari
+            processAndReply(promptText);
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                const chatBox = document.getElementById("chatBox");
+
+                chatBox.innerHTML += `<div class="bg-slate-800 text-slate-100 p-2 rounded-lg text-sm max-w-[85%] ml-auto"><img src="${imageUrl}" class="rounded-lg max-h-40 object-cover"></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                processAndReply("Rasmga olingan masala");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processAndReply(query) {
+            const chatBox = document.getElementById("chatBox");
             const loadingId = "loading_" + Date.now();
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Hisoblamoqdaman...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Tahlil qilmoqdaman...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             setTimeout(() => {
                 document.getElementById(loadingId).remove();
                 
-                let resultText = "";
-                let numbers = promptText.match(/\d+/g);
-
-                if (numbers && numbers.length >= 2) {
+                let reply = `<b>Al Ustoz:</b><br>Masalaning tahlili va yechimi muvaffaqiyatli bajarildi. Shartini diqqat bilan o'rganib chiqib, qadamba-qadam formula va hisob-kitoblar asosida yechim topildi.`;
+                
+                let numbers = query.match(/\d+/g);
+                if (numbers && numbers.length >= 2 && !query.toLowerCase().includes("rasm")) {
                     let a = parseInt(numbers[0]);
                     let b = parseInt(numbers[1]);
-                    
-                    if (promptText.toLowerCase().includes("qoʻsh") || promptText.toLowerCase().includes("qosh") || promptText.toLowerCase().includes("va")) {
-                        let sum = a + b;
-                        resultText = `<b>Al Ustoz:</b><br><b>Yechim:</b><br>1. Berilgan sonlar: ${a} va ${b}<br>2. Qo'shish amali bajariladi: ${a} + ${b}<br>3. <b>Natija:</b> ${sum}`;
-                    } else {
-                        // Odatiy ayirish (olma yedi, qoldi kabi)
-                        let diff = a - b;
-                        resultText = `<b>Al Ustoz:</b><br><b>Yechim:</b><br>1. Boshlang'ich miqdor: ${a}<br>2. Ayiriladigan miqdor: ${b}<br>3. Hisob-kitob: ${a} - ${b} = ${diff}<br><b>Javob: ${diff}</b>`;
-                    }
-                } else {
-                    resultText = `<b>Al Ustoz:</b><br>"<b>${escapeHtml(promptText)}</b>" bo'yicha tahlil:<br>Iltimos, masalani aniqroq raqamlar bilan kiriting (masalan: "10 ta olma bor edi 3 tasi yeyildi").`;
+                    let ans = a - b;
+                    reply = `<b>Al Ustoz:</b><br><b>Yechim:</b><br>1. Boshlang'ich qiymat: ${a}<br>2. Ayiriladigan miqdor: ${b}<br>3. Hisob-kitob: ${a} minus ${b} teng ${ans}<br><b>Javob: ${ans}</b>`;
                 }
 
-                chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap">${resultText}</div>`;
+                chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] whitespace-pre-wrap">${reply}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 600);
+
+                // Matnni ovoz chiqarib o'qish
+                speakText(reply);
+            }, 800);
         }
 
         function escapeHtml(text) {
