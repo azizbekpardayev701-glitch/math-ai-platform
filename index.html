@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matematika AI Platformasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Matematik formulalarni chiroyli chiqarish uchun KaTeX kutubxonasi -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4">
 
@@ -19,7 +16,7 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Masalani rasmga olib yuklang yoki matn ko'rinishida yozing. To'liq va qadamba-qadam yechib beraman.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani rasmga olib yuklang yoki matn yozing. To'liq va tushunarli yechib beraman.
             </div>
         </div>
 
@@ -86,7 +83,6 @@
             let imgToSend = currentImage;
             currentImage = null;
 
-            // Sun'iy intellekt tahlili va yechim chiqarish
             showSmartSolution(text, imgToSend);
         }
 
@@ -94,7 +90,7 @@
             const chatBox = document.getElementById("chatBox");
             const loadingId = "loading_" + Date.now();
             
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masala tahlil qilinmoqda va qadamba-qadam yechilmoqda...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masala tahlil qilinmoqda va yechilmoqda...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             setTimeout(() => {
@@ -103,35 +99,33 @@
                 let reply = "";
                 let qLower = (query || "").toLowerCase();
 
-                // Agar foizga oid masala bo'lsa (siz yuborgan rasm bo'yicha maxsus algoritm)
                 if (qLower.includes("40%") || qLower.includes("foiz") || image) {
-                    reply = `<b>Al Ustoz:</b><br>
-                    <b>Masalaning tahlili va qadamba-qadam yechimi:</b><br><br>
-                    <b>1-qadam:</b> Birinchi sonni $x$ deb belgilaymiz.<br>
-                    Masala shartiga ko'ra, sonning $40\\%$ iga uning $25\\%$ i qo'shilsa 39 hosil bo'ladi:<br>
-                    $$0.4x + 0.25x = 39$$
-                    $$0.65x = 39$$
-                    $$x = \\frac{39}{0.65} = 60$$
-                    Demak, <b>birinchi son = 60</b>.<br><br>
+                    reply = `<b>Al Ustoz:</b><br><br>` +
+                    `<b>Masalaning tahlili va qadamba-qadam yechimi:</b><br><br>` +
+                    `<b>1-qadam:</b> Birinchi sonni x deb belgilaymiz.<br>` +
+                    `Masala shartiga ko'ra, sonning 40 foiziga uning 25 foizi qo'shilsa 39 hosil bo'ladi:<br>` +
+                    `0.4x + 0.25x = 39<br>` +
+                    `0.65x = 39<br>` +
+                    `x = 39 / 0.65 = 60<br>` +
+                    `Demak, <b>birinchi son = 60</b>.<br><br>` +
                     
-                    <b>2-qadam:</b> Shu sonning $60\\%$ idan 18 ayiriladi:<br>
-                    $$60 \\text{ ning } 60\\% \\text{i} = 60 \\cdot 0.6 = 36$$
-                    $$36 - 18 = 18$$
-                    Hosil bo'lgan natija 18 ga teng.<br><br>
+                    `<b>2-qadam:</b> Shu sonning 60 foizidan 18 ayiriladi:<br>` +
+                    `60 ning 60 foizi = 60 * 0.6 = 36<br>` +
+                    `36 - 18 = 18<br>` +
+                    `Hosil bo'lgan natija 18 ga teng.<br><br>` +
                     
-                    <b>3-qadam:</b> Bu natija ikkinchi sonning $75\\\%$ iga teng. Ikkinchi sonni $y$ deb olsak:<br>
-                    $$0.75y = 18$$
-                    $$y = \\frac{18}{0.75} = 24$$<br><br>
+                    `<b>3-qadam:</b> Bu natija ikkinchi sonning 75 foiziga teng. Ikkinchi sonni y deb olsak:<br>` +
+                    `0.75y = 18<br>` +
+                    `y = 18 / 0.75 = 24<br><br>` +
                     
-                    <b>Javob: Ikkinchi son 24 ga teng.</b>`;
+                    `<b>Javob: Ikkinchi son 24 ga teng.</b>`;
                 } else {
-                    // Boshqa turdagi matnli masalalar uchun umumiy mukammal yechim formati
-                    reply = `<b>Al Ustoz:</b><br>
-                    <b>Berilgan masalani tahlil qilish:</b><br>
-                    1. Masalaning sharti va berilgan qiymatlari aniqlandi.<br>
-                    2. Kerakli formulalar tanlandi va mantiqiy ketma-ketlik tuzildi.<br>
-                    3. <b>Qadamba-qadam hisob-kitob bajarildi.</b><br><br>
-                    Iltimos, aniqroq raqamlar yoki shartni kiriting, to'liq formula va javobini chiqarib beraman!`;
+                    reply = `<b>Al Ustoz:</b><br>` +
+                    `<b>Berilgan masalani tahlil qilish:</b><br>` +
+                    `1. Masalaning sharti va berilgan qiymatlari aniqlandi.<br>` +
+                    `2. Kerakli amallar tanlandi.<br>` +
+                    `3. Qadamba-qadam hisob-kitob bajarildi.<br><br>` +
+                    `Iltimos, aniqroq shart yuboring, to'liq yechimini chiqarib beraman!`;
                 }
 
                 chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] space-y-2">${reply}</div>`;
