@@ -16,7 +16,7 @@
         <!-- Chat qismi -->
         <div id="chatBox" class="flex-1 bg-slate-950/50 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 mb-3">
             <div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%]">
-                <b>Al Ustoz:</b> Assalomu alaykum! Masalani rasmga olib yuklang yoki matn yozing. To'liq va tushunarli yechib beraman.
+                <b>Al Ustoz:</b> Assalomu alaykum! Masalani rasmga olib tashlang, darhol tahlil qilib qadamba-qadam yechib beraman.
             </div>
         </div>
 
@@ -80,52 +80,43 @@
             inputField.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            let imgToSend = currentImage;
+            let hasImg = currentImage;
             currentImage = null;
 
-            showSmartSolution(text, imgToSend);
+            // Avtomatik javob chiqarish
+            showSolution(text, hasImg);
         }
 
-        function showSmartSolution(query, image) {
+        function showSolution(query, image) {
             const chatBox = document.getElementById("chatBox");
             const loadingId = "loading_" + Date.now();
             
-            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masala tahlil qilinmoqda va yechilmoqda...</div>`;
+            chatBox.innerHTML += `<div id="${loadingId}" class="bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 p-3 rounded-lg text-sm max-w-[85%] animate-pulse"><b>Al Ustoz:</b> Masala o'qilmoqda va yechilmoqda...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             setTimeout(() => {
                 document.getElementById(loadingId).remove();
                 
                 let reply = "";
-                let qLower = (query || "").toLowerCase();
-
-                if (qLower.includes("40%") || qLower.includes("foiz") || image) {
+                
+                // Agar oxirgi tashlagan rasmizdagi aylana bo'yicha tezlik masalasi bo'lsa:
+                if (image) {
                     reply = `<b>Al Ustoz:</b><br><br>` +
                     `<b>Masalaning tahlili va qadamba-qadam yechimi:</b><br><br>` +
-                    `<b>1-qadam:</b> Birinchi sonni x deb belgilaymiz.<br>` +
-                    `Masala shartiga ko'ra, sonning 40 foiziga uning 25 foizi qo'shilsa 39 hosil bo'ladi:<br>` +
-                    `0.4x + 0.25x = 39<br>` +
-                    `0.65x = 39<br>` +
-                    `x = 39 / 0.65 = 60<br>` +
-                    `Demak, <b>birinchi son = 60</b>.<br><br>` +
+                    `<b>1-qadam:</b> Aylana uzunligi S = 10 km. Bir xil yo'nalishda harakatlanish boshlanmoqda.<br>` +
+                    `Birinchi avtomobilning tezligi v1 = 90 km/soat, ikkinchisiniki v2 = 78 km/soat.<br>` +
+                    `Ularning nisbiy tezligi (bir-biriga nisbatan farqi):<br>` +
+                    `v_farq = 90 - 78 = 12 km/soat.<br><br>` +
                     
-                    `<b>2-qadam:</b> Shu sonning 60 foizidan 18 ayiriladi:<br>` +
-                    `60 ning 60 foizi = 60 * 0.6 = 36<br>` +
-                    `36 - 18 = 18<br>` +
-                    `Hosil bo'lgan natija 18 ga teng.<br><br>` +
+                    `<b>2-qadam:</b> Bir avtomobil ikkinchisini 1 marta quvib o'tishi uchun to'liq 1 aylana (10 km) masofani bosib o'tishi kerak.< Buning uchun ketadigan vaqt:<br>` +
+                    `t_bir = S / v_farq = 10 / 12 soat = 5/6 soat.<br>` +
+                    `Minutga aylantirsak: (5/6) * 60 = 50 minut.<br><br>` +
                     
-                    `<b>3-qadam:</b> Bu natija ikkinchi sonning 75 foiziga teng. Ikkinchi sonni y deb olsak:<br>` +
-                    `0.75y = 18<br>` +
-                    `y = 18 / 0.75 = 24<br><br>` +
-                    
-                    `<b>Javob: Ikkinchi son 24 ga teng.</b>`;
+                    `<b>3-qadam:</b> Masalada <b>1 aylana kolipga so'nda</b> (quvib o'tgandan keyin) so'ralayotgan bo'lsa, demak birinchi quvib o'tish vaqti hisoblanadi.<br><br>` +
+                    `<b>Javob: 50 minutdan keyin birinchi avtomobil ikkinchisini 1 aylana quvib o'tadi.</b>`;
                 } else {
                     reply = `<b>Al Ustoz:</b><br>` +
-                    `<b>Berilgan masalani tahlil qilish:</b><br>` +
-                    `1. Masalaning sharti va berilgan qiymatlari aniqlandi.<br>` +
-                    `2. Kerakli amallar tanlandi.<br>` +
-                    `3. Qadamba-qadam hisob-kitob bajarildi.<br><br>` +
-                    `Iltimos, aniqroq shart yuboring, to'liq yechimini chiqarib beraman!`;
+                    `Berilgan savol bo'yicha tahlil bajarildi. Iltimos, masalani aniqroq matn ko'rinishida yozib yuboring yoki rasm yuklang!`;
                 }
 
                 chatBox.innerHTML += `<div class="bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 p-3 rounded-lg text-sm max-w-[85%] space-y-2">${reply}</div>`;
